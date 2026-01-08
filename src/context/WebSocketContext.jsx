@@ -25,7 +25,12 @@ export const WebSocketProvider = ({ children }) => {
   useEffect(() => {
     // Connect to the backend server
     // Connect to the backend server
-    const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    // If we are on localhost, assume dev server port 5001, otherwise assume relative path (prod)
+    // Or if accessing via local IP (e.g. 192.168.1.5), we want port 5001 there too.
+    const socketUrl =
+      import.meta.env.VITE_API_URL || `${protocol}//${hostname}:5001`;
     const newSocket = io(socketUrl);
     socketRef.current = newSocket;
 
