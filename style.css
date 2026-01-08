@@ -1,0 +1,372 @@
+/* --- Global Styles & House of Balloons Dark Theme --- */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+
+:root {
+  --primary-color: #EAEAEA;     /* Soft pearl white - not harsh pure white */
+  --text-color: #F9F9F9;        /* Mist white - used for main text glow */
+  --glass-bg: #0A0A0ACC;        /* Night-glass - deep black mist with transparency */
+  --glass-border: rgba(255, 255, 255, 0.15); /* Frosted light edge */
+  --neon-white-glow: rgba(255, 255, 255, 0.25); /* Subtle neon halo glow */
+  --accent-color: #9EA7AA;      /* Silver-gray accent for cold luxury */
+}
+
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    color: var(--text-color);
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate; /* Ensures proper stacking for pseudo-elements */
+}
+
+/* This pseudo-element now holds the SHARP background */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Sits behind ALL content */
+
+    /* --- CUSTOM BACKGROUND IMAGE --- */
+    /* Replace the URL with your chosen background image. */
+    background-image: url(./musicDi/Background/balloons.jpg);
+    background-size: contain;
+    background-position: center;
+    
+    /* The background is darkened but NOT blurred */
+    filter: brightness(0.6); 
+    transform: scale(1.05); /* To hide edges */
+}
+
+
+/* Dark Mask and Spotlight Effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Sits above background and balloons */
+    background: radial-gradient(
+        circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.7) 50%,
+        rgba(0, 0, 0, 0.9) 100%
+    );
+    pointer-events: none;
+    transition: background 0.1s linear;
+    filter: blur(2px);
+}
+
+/* Floating Balloons (Only White) */
+.balloons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1; /* Sits behind the dark mask */
+    filter: blur(3px);
+}
+
+.balloon {
+    position: absolute;
+    bottom: -100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.839);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: float-up 20s infinite ease-in-out;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.balloon:nth-child(1) { left: 10%; animation-duration: 22s; animation-delay: 0s; width: 70px; height: 70px; }
+.balloon:nth-child(2) { left: 20%; animation-duration: 18s; animation-delay: 3s; width: 90px; height: 90px; }
+.balloon:nth-child(3) { left: 35%; animation-duration: 25s; animation-delay: 6s; width: 50px; height: 50px; }
+.balloon:nth-child(4) { left: 45%; animation-duration: 19s; animation-delay: 9s; width: 85px; height: 85px; }
+.balloon:nth-child(5) { left: 60%; animation-duration: 23s; animation-delay: 1s; width: 65px; height: 65px; }
+.balloon:nth-child(6) { left: 70%; animation-duration: 17s; animation-delay: 4s; width: 95px; height: 95px; }
+.balloon:nth-child(7) { left: 85%; animation-duration: 20s; animation-delay: 7s; width: 75px; height: 75px; }
+.balloon:nth-child(8) { left: 5%; animation-duration: 16s; animation-delay: 10s; width: 55px; height: 55px; }
+.balloon:nth-child(9) { left: 50%; animation-duration: 24s; animation-delay: 2s; width: 80px; height: 80px; }
+.balloon:nth-child(10) { left: 95%; animation-duration: 20s; animation-delay: 5s; width: 70px; height: 70px; }
+
+
+@keyframes float-up {
+    0% { transform: translateY(0) scale(0.7); opacity: 0.6; }
+    50% { transform: translateY(-50vh) scale(1); opacity: 0.8; }
+    100% { transform: translateY(-120vh) scale(1.1); opacity: 0; }
+}
+
+/* --- Player Layout (Centered Medium Wrapper) --- */
+.player-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    padding: 30px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px) brightness(1.1);
+    -webkit-backdrop-filter: blur(30px) brightness(1.1);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px var(--neon-white-glow); /* Neon white glow */
+    
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear, box-shadow 0.2s ease;
+    transform: perspective(1000px) rotateX(var(--rotate-x, 0)) rotateY(var(--rotate-y, 0));
+}
+
+.player-wrapper:hover {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 40px var(--neon-white-glow);
+}
+
+/* --- Main Song Display --- */
+.song-main {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+#song-cover-container {
+    margin-bottom: 25px;
+    transition: transform 0.8s ease, opacity 0.8s ease;
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+#song-cover-container.active {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#song-cover {
+    width: 100%;
+    padding-bottom: 100%;
+    height: 0;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.5s ease-in-out;
+}
+
+#song-cover-container.playing #song-cover {
+    animation: slow-pulse 4s infinite ease-in-out;
+}
+
+@keyframes slow-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+#song-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+#song-artist {
+    font-size: 0.95rem;
+    font-weight: 400;
+    opacity: 0.6;
+}
+
+/* --- Controls --- */
+.controls-main {
+    width: 100%;
+}
+
+#song-progress-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+#song-progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: white;
+    border-radius: 2px;
+    box-shadow: 0 0 6px var(--primary-color);
+    transition: width 0.1s linear, background-color 0.8s ease, box-shadow 0.8s ease;
+}
+
+.song-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.song-button-container button {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.7;
+}
+.song-button-container button:hover {
+    color: var(--primary-color);
+    transform: scale(1.08);
+    opacity: 1;
+}
+.song-button-container button i {
+    width: 22px;
+    height: 22px;
+}
+
+#song-play-pause {
+    background-color: var(--primary-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 5px 15px -5px var(--primary-color);
+    transition: all 0.8s ease;
+    opacity: 1;
+}
+#song-play-pause:hover {
+    color: #fff;
+    transform: scale(1.1);
+    filter: brightness(1.15);
+}
+#song-play-pause i {
+    width: 26px;
+    height: 26px;
+}
+
+/* --- Playlist Controls (Top Right) --- */
+.playlist-controls-main {
+    position: fixed;
+    top: 30px;
+    right: 40px;
+    z-index: 20;
+    display: flex;
+    gap: 12px;
+}
+.playlist-controls-main button {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: var(--text-color);
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+.playlist-controls-main button:hover,
+.playlist-controls-main button.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    opacity: 1;
+}
+.playlist-controls-main i {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+/* --- Playlist Wrapper (Sliding Panel) --- */
+.playlist-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(25px);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.5s ease-in-out;
+    padding: 25px;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+.playlist-wrapper.active {
+    transform: translateX(0);
+}
+
+.playlist-wrapper h4 {
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+    font-weight: 500;
+}
+
+#playlist {
+    list-style: none;
+    height: calc(100% - 60px);
+    overflow-y: auto;
+    padding-right: 5px;
+}
+#playlist::-webkit-scrollbar { width: 4px; }
+#playlist::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+#playlist::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+.playlist-each-song {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 4px;
+}
+.playlist-each-song:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.playlist-each-song.active {
+    background-color: var(--primary-color);
+}
+
+.img-cont {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    background-size: cover;
+    background-position: center;
+}
+
+.song-info .song-title { font-size: 0.9rem; font-weight: 500; }
+.song-info .song-artist { font-size: 0.7rem; opacity: 0.5; }
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    body::before { display: none; }
+    body::after {
+        filter: brightness(0.4);
+        transform: scale(1.0);
+    }
+    .player-wrapper {
+        width: calc(100% - 40px);
+        max-width: none;
+        transform: none !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    .playlist-wrapper { width: 100%; }
+    .playlist-controls-main { top: 20px; right: 20px; }
+    #song-cover { width: 100%; padding-bottom: 100%; }
+    #song-title { font-size: 1.6rem; }
+}

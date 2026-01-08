@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Audio Progress Bar Example</title>
+<style>
+  body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", Arial; padding: 24px; max-width:720px; margin:auto; }
+  .player { display:flex; flex-direction:column; gap:12px; }
+  .controls { display:flex; gap:10px; align-items:center; }
+  button { padding:8px 12px; cursor:pointer; }
+  .time { min-width:72px; text-align:center; font-variant-numeric: tabular-nums; }
+
+  /* Custom progress bar */
+  .progress-container {
+    position:relative;
+    height:14px;
+    background: #eee;
+    border-radius:8px;
+    overflow:hidden;
+    cursor:pointer;
+    user-select:none;
+  }
+  .progress-buffer {
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:0%;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(0,0,0,0.06) 0 8px,
+      rgba(0,0,0,0.02) 8px 16px
+    );
+    opacity:0.65;
+  }
+  .progress-played {
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:0%;
+    background:linear-gradient(90deg,#4f46e5 0%,#06b6d4 100%);
+  }
+  .thumb {
+    position:absolute;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:14px; height:14px;
+    border-radius:50%;
+    background:white;
+    border:2px solid rgba(0,0,0,0.15);
+    box-shadow:0 2px 6px rgba(0,0,0,0.12);
+    pointer-events:none; /* we handle dragging on container */
+  }
+
+  /* make it accessible for keyboard focus when using input range fallback */
+  .sr-only { position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+  <h2>Audio player with synced progress bar</h2>
+  <div class="player">
+    <!-- hidden native controls so we can build our own UI -->
+    <audio id="audio" preload="metadata">
+      <!-- Replace with your audio file path or URL -->
+      <source src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Beethoven_Moonlight_movement_1.ogg" type="audio/ogg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <div class="controls">
+      <button id="playBtn">Play</button>
+      <div class="time" id="current">0:00</div>
+
+      <div style="flex:1">
+        <div id="progressContainer" class="progress-container" aria-label="Audio progress" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+          <div class="progress-buffer" id="progressBuffer"></div>
+          <div class="progress-played" id="progressPlayed"></div>
+          <div class="thumb" id="thumb" style="left:0%"></div>
+        </div>
+      </div>
+
+      <div class="time" id="duration">0:00</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const audio = document.getElementById('audio');
+  const playBtn = document.getElementById('playBtn');
+  const currentEl = document.getElementById('current');
+  const durationEl = document.getElementById('duration');
+  const progContainer = document.getElementById('progressContainer');
+  const progPlayed = document.getElementById('progressPlayed');
+  const progBuffer = document.getElementById('progressBuffer');
+  const thumb = document.getElementById('thumb');
+
+  let dragging = false;
+  let rafId = null;
+
+  // Helper: format seconds to MM:SS (or H:MM:SS if >= 3600)
+  function formatTime(sec) {
+    if (!isFinite(sec)) return "0:00";
+    sec = Math.floor(sec);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  // Update UI for played percent
+  function setPlayedPercent(pct) {
+    pct = Math.max(0, Math.min(100, pct));
+    progPlayed.style.width = pct + '%';
+    thumb.style.left = pct + '%';
+    progContainer.setAttribute('aria-valuenow', String(pct.toFixed(1)));
+  }
+
+  // Update buffer (show how much is buffered)
+  function updateBuffer() {
+    try {
+      const d = audio.duration;
+      if (!isFinite(d) || d === 0) { progBuffer.style.width = '0%'; return; }
+      // Get the last buffered range end (best effort)
+      if (audio.buffered.length) {
+        const end = audio.buffered.end(audio.buffered.length - 1);
+        const pct = (end / d) * 100;
+        progBuffer.style.width = Math.min(100, pct) + '%';
+      } else {
+        progBuffer.style.width = '0%';
+      }
+    } catch (e) {
+      progBuffer.style.width = '0%';
+    }
+  }
+
+  // Called whenever audio time updates (native event)
+  function onTimeUpdate() {
+    if (dragging) return; // if user is dragging, don't overwrite
+    if (!isFinite(audio.duration) || audio.duration === 0) {
+      setPlayedPercent(0);
+      currentEl.textContent = '0:00';
+      return;
+    }
+    const pct = (audio.currentTime / audio.duration) * 100;
+    setPlayedPercent(pct);
+    currentEl.textContent = formatTime(audio.currentTime);
+  }
+
+  // When metadata loaded we know duration
+  audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = formatTime(audio.duration);
+    updateBuffer();
+    onTimeUpdate();
+  });
+
+  // Native timeupdate for coarse updates; we also use rAF for smoother thumb if desired
+  audio.addEventListener('timeupdate', onTimeUpdate);
+  audio.addEventListener('progress', updateBuffer);
+  audio.addEventListener('ended', () => {
+    playBtn.textContent = 'Play';
+  });
+
+  // Play/pause toggle
+  playBtn.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play();
+      playBtn.textContent = 'Pause';
+    } else {
+      audio.pause();
+      playBtn.textContent = 'Play';
+    }
+  });
+
+  // Convert X coordinate to percent across container
+  function eventToPercent(e) {
+    const rect = progContainer.getBoundingClientRect();
+    let clientX;
+    if (e.touches) clientX = e.touches[0].clientX;
+    else clientX = e.clientX;
+    const x = clientX - rect.left;
+    const pct = (x / rect.width) * 100;
+    return Math.max(0, Math.min(100, pct));
+  }
+
+  // Seek audio to percent
+  function seekToPercent(pct) {
+    if (!isFinite(audio.duration) || audio.duration === 0) return;
+    const time = (pct / 100) * audio.duration;
+    audio.currentTime = time;
+    // update immediately to show snappy UI
+    setPlayedPercent(pct);
+    currentEl.textContent = formatTime(time);
+  }
+
+  // Mouse / touch handling for seeking (click + drag)
+  progContainer.addEventListener('mousedown', (e) => {
+    dragging = true;
+    const pct = eventToPercent(e);
+    seekToPercent(pct);
+    // attach move / up on document to allow dragging outside container
+    function onMove(ev) { seekToPercent(eventToPercent(ev)); }
+    function onUp(ev) { seekToPercent(eventToPercent(ev)); dragging = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  // touch support
+  progContainer.addEventListener('touchstart', (e) => {
+    dragging = true;
+    const pct = eventToPercent(e);
+    seekToPercent(pct);
+  }, {passive:false});
+  window.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    seekToPercent(eventToPercent(e));
+  }, {passive:false});
+  window.addEventListener('touchend', () => { dragging = false; });
+
+  // Keyboard accessibility: left/right arrows to jump +/- 5s, Home/End to start/end
+  progContainer.addEventListener('keydown', (e) => {
+    if (!isFinite(audio.duration) || audio.duration === 0) return;
+    const step = 5; // seconds
+    if (e.key === 'ArrowRight' || e.key === 'Right') {
+      audio.currentTime = Math.min(audio.duration, audio.currentTime + step);
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
+      audio.currentTime = Math.max(0, audio.currentTime - step);
+      e.preventDefault();
+    } else if (e.key === 'Home') {
+      audio.currentTime = 0; e.preventDefault();
+    } else if (e.key === 'End') {
+      audio.currentTime = audio.duration; e.preventDefault();
+    }
+  });
+
+  // Smooth UI with requestAnimationFrame (optional)
+  function rafLoop() {
+    if (!dragging) {
+      // if audio playing, ensure thumb is smooth (timeupdate can be coarse)
+      if (!audio.paused) onTimeUpdate();
+    }
+    rafId = requestAnimationFrame(rafLoop);
+  }
+  rafLoop();
+
+  // Clean up when unloading (not strictly necessary here)
+  window.addEventListener('unload', () => { if (rafId) cancelAnimationFrame(rafId); });
+
+})();
+</script>
+</body>
+</html>

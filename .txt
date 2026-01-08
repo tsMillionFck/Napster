@@ -1,0 +1,334 @@
+Html: 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="song-container">
+            <div id="song-cover">
+        
+            </div>
+            <div class="song-details-container">
+                <h3 id="song-title"></h3>
+                <p id="song-artist"></p>
+            </div>
+            <audio id="song-audio"></audio>
+            <div id="song-progress-container">
+                <div id="song-progress-bar"></div>
+            </div>
+            <div class="song-button-container">
+                <button id="song-prev">Prev</button>
+                <button id="song-play-pause">Play</button>
+                <button id="song-next">Next</button>
+            </div>
+        </div>
+        <div class="playlist-container">
+            <div class="playlist-button-container">
+                <button id="playlist-song-repeat">Repeat</button>
+                <button id="playlist-shuffle">Shuffle</button>
+                <button id="playlist-loop">Loop</button>
+            </div>
+            <ul id="playlist">
+            </ul>
+        </div>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+JavaScript: 
+//-ImportDate--
+import { songs } from './data.js'
+console.log(songs)
+
+//--Selectors--///
+//--container-Selectors--/
+const songCover = document.querySelector('#song-cover');
+const songTitle = document.querySelector('#song-title');
+const songArtist = document.querySelector('#song-artist');
+//-Audio-Selectors--//
+const songAudio = document.querySelector('#song-audio');
+//--ProgressBar-//
+const progressBar = document.querySelector('#song-progress-bar')
+const progressContainer = document.querySelector('#song-progress-container')
+//--button-Selectors--/
+const songPrev = document.querySelector('#song-prev');
+const songPlayPause = document.querySelector('#song-play-pause');
+const songNext = document.querySelector('#song-next');
+//--playlist-Selector--//
+const playList = document.querySelector('#playlist');
+//--playlist-button-Selectors--/
+const playListShuffle = document.querySelector('#playlist-shuffle')
+const playListRepeat = document.querySelector('#playlist-song-repeat')
+const playListLoop = document.querySelector('#playlist-loop');
+
+//--States--//
+let currentSongIndex = 1;
+let isPlaying = false;
+let isRepeat = false;
+let isShuffle = false;
+
+//--Functions--//
+function loadSong(song) {
+    songCover.innerHTML = `<img src="${song.cover}" alt="">`;
+    songTitle.textContent = song.name;
+    songArtist.textContent = song.artist;
+    songAudio.src = song.path;
+    console.log(songAudio);
+}
+
+function pauseSong() {
+        songPlayPause.textContent = 'Play';
+        songAudio.pause();
+        isPlaying = false;
+}
+function playSong() {
+    const playlistSongActive = document.querySelector('.playlist-each-song.active');
+    if (playlistSongActive) {
+        playlistSongActive.classList.remove('active');
+    }
+
+    const allPlayingSongs = document.querySelectorAll('.playlist-each-song');
+    allPlayingSongs[currentSongIndex].classList.add('active')
+
+        songPlayPause.textContent = 'Pause';
+        songAudio.play();
+        isPlaying = true;
+}
+
+function updateProgressBar(e) {
+    const {duration, currentTime} = e.target;
+    const progressPercentage = currentTime / duration * 100;
+    progressBar.style.width = `${progressPercentage}%`;
+}
+loadSong(songs[currentSongIndex])
+function setProgressBar(e) {
+    const width = this.clientWidth;
+    const clickX = e.offsetX;
+    const { duration } = songAudio;
+    songAudio.currentTime = (clickX / width) * duration;
+}
+function renderPlaylist() {
+    let playListHtml = '';
+    songs.forEach((song, index) => {
+        playListHtml += 
+        `<li class="playlist-each-song" data-index="${index}">
+            <div class="playlist-song">
+                <div class="img-cont" style="background-image: url(${song.cover})";></div>
+                <div class="song-info">
+                    <p class="song-title">${song.name}</p>
+                    <p class="song-artist">${song.artist}</p>
+                </div>
+            </div>
+        </li>
+                `
+    })
+    playList.innerHTML = playListHtml;
+    console.log("hellp")
+}
+function nextSong() {
+    if(isShuffle) {
+        shuffleSong();
+    } else {
+        currentSongIndex++;
+        if (currentSongIndex > (songs.length - 1)){
+            currentSongIndex = 0;
+            loadSong(songs[currentSongIndex]);
+        } else {
+            loadSong(songs[currentSongIndex]);
+        }
+        isPlaying = true;
+        playSong()
+    }
+}
+function prevSong() {
+    currentSongIndex--;
+    if (currentSongIndex < 0) {
+        currentSongIndex = songs.length - 1;
+        loadSong(songs[currentSongIndex])
+    } else{
+        loadSong(songs[currentSongIndex])
+    }
+    isPlaying = true;
+    playSong()
+}
+function handleSongEnd() {
+    if (isRepeat) {
+        playSong();
+
+    } else {
+        nextSong();
+    }
+}
+function shuffleSong() {
+    let randomIndex;
+    do {
+        randomIndex = Math.floor(Math.random() * songs.length)
+    } while (randomIndex === currentSongIndex);
+    currentSongIndex = randomIndex
+    loadSong(songs[currentSongIndex]);
+    playSong();
+}
+
+renderPlaylist();
+//--EventListeners--//
+songPlayPause.addEventListener('click', () => {
+    if (isPlaying) {
+        pauseSong();
+    } else {
+        playSong();
+    }
+})
+songNext.addEventListener('click', () => {
+    nextSong();
+})
+
+songPrev.addEventListener('click', () => {
+    prevSong();
+})
+playList.addEventListener('click', (e) => {
+    let clickedSong = e.target.closest('.playlist-each-song');
+    if (!clickedSong) return;
+        const newIndex = parseInt(clickedSong.dataset.index);
+        currentSongIndex = newIndex;
+        loadSong(songs[currentSongIndex]);
+        playSong();
+})
+playListRepeat.addEventListener('click', () => {
+    isRepeat = !isRepeat;
+    if (isRepeat) {
+        playListRepeat.classList.add('activeButton');
+    } else {
+        playListRepeat.classList.remove('activeButton');
+    }
+})
+playListShuffle.addEventListener('click', () => {
+    isShuffle = !isShuffle;
+    if(isShuffle) {
+        playListShuffle.classList.add('activeButton')
+    } else {
+        playListShuffle.classList.remove('activeButton')       
+    }
+    nextSong()
+})
+songAudio.addEventListener('ended', handleSongEnd)
+songAudio.addEventListener('timeupdate', updateProgressBar)
+progressContainer.addEventListener('click', setProgressBar);
+
+Css:
+*{
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+body{
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+}
+
+.wrapper{
+    width: 100%;
+    height: 100%;
+    border: 1px solid black;
+    display: flex;
+    padding: 10px;
+    gap: 15px;
+}
+.song-container, .playlist-container{
+    border: 1px solid black;
+    flex-grow: 1;
+    min-width: 40%;
+    padding: 10px;
+}
+/* song-container */
+.song-container {
+    display: block;
+}
+#song-cover{
+    height: 67%;
+    width: 100%;
+    border: 1px solid red;
+    overflow: hidden;
+}
+#song-cover img{
+    width: 100%;
+}
+.song-details-container{
+    margin: 25px 0;
+}
+.song-container h3, p{
+    margin: 0;
+    font-size: 2.5rem;
+}
+.song-button-container{
+    display: flex;
+    height: 9%;
+    gap: 6px;
+}
+.song-button-container button{
+    flex-grow: 1;
+}
+#song-progress-container {
+    background-color: grey;
+    width: 100%;
+    height: 10px;
+}
+#song-progress-bar{
+    background-color: red;
+    height: 1px;
+    width: 0;
+}
+/* playlist-container */
+.playlist-container{
+    display: block;
+}
+.playlist-button-container{
+    display: flex;
+    height: 9%;
+    gap: 6px;
+}
+.playlist-button-container button{
+    flex-grow: 1;
+}
+#playlist li{
+    margin: 5px 0;
+    background-color: gainsboro;
+    list-style: upper-roman;
+    padding: 10px;
+}
+.playlist-song{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.img-cont{
+    width: 60px;
+    height: 60px;
+    background-image: url('/musicDi/Image/paapi.jpeg');
+    background-position: center;
+    background-size: cover;
+}
+.song-info{
+    flex-grow: 1;
+    height: 60px;
+    padding: 0 4px;
+}
+.song-title{
+    font-size: 2rem;
+    margin: 0;
+}
+.song-artist{
+    font-size: 1rem;
+    margin: 0;
+}
+.playlist-each-song.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    border-left: 3px solid #6c5ce7; /* Or any color you choose */
+}
+.activeButton{
+    background-color: #6c5ce7;
+}
