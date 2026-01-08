@@ -9,6 +9,7 @@ export default function Player({
   onNext,
   onPrev,
   onSeek,
+  isReadOnly = false,
 }) {
   // Format time as MM:SS
   const formatTime = (time) => {
@@ -58,11 +59,11 @@ export default function Player({
       {/* Progress Bar */}
       <div
         className="progress-bar-container"
-        onClick={handleProgressClick}
+        onClick={isReadOnly ? undefined : handleProgressClick}
         style={{
           height: "8px",
           background: "var(--color-swiss-ink)",
-          cursor: "pointer",
+          cursor: isReadOnly ? "not-allowed" : "pointer",
           position: "relative",
         }}
       >
@@ -89,7 +90,13 @@ export default function Player({
       </div>
 
       {/* Controls */}
-      <div className="controls">
+      <div
+        className="controls"
+        style={{
+          opacity: isReadOnly ? 0.5 : 1,
+          pointerEvents: isReadOnly ? "none" : "auto",
+        }}
+      >
         <button className="btn" onClick={onPrev} aria-label="Previous">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />

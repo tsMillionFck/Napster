@@ -176,12 +176,17 @@ export function useAudioPlayer() {
     setProgress(time);
   }, []);
 
-  const selectSong = useCallback((index) => {
+  const selectSong = useCallback((index, autoPlay = true) => {
     setCurrentSongIndex(index);
-    setIsPlaying(true);
-    setTimeout(() => {
-      audioRef.current.play().catch(console.error);
-    }, 100);
+    if (autoPlay) {
+      setIsPlaying(true);
+      setTimeout(() => {
+        audioRef.current.play().catch(console.error);
+      }, 100);
+    } else {
+      setIsPlaying(false);
+      audioRef.current.pause();
+    }
   }, []);
 
   const toggleRepeat = useCallback(() => setIsRepeat((prev) => !prev), []);

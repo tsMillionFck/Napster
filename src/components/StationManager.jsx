@@ -6,42 +6,12 @@ export default function StationManager() {
   const { isConnected, currentStation, leaveStation } = useWebSocket();
 
   if (!isConnected) {
-    return (
-      <div
-        style={{
-          position: "fixed",
-          bottom: "30px",
-          right: "30px",
-          background: "var(--color-swiss-orange)",
-          color: "var(--color-swiss-bg)",
-          padding: "8px 16px",
-          fontWeight: "900",
-          textTransform: "uppercase",
-          border: "4px solid var(--color-swiss-ink)",
-          boxShadow: "4px 4px 0px var(--color-swiss-ink)",
-          zIndex: 100,
-        }}
-      >
-        OFFLINE
-      </div>
-    );
+    return <div className="station-offline">OFFLINE</div>;
   }
 
   if (currentStation) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          top: "30px",
-          right: "80px",
-          background: "var(--color-swiss-bg)",
-          border: "4px solid var(--color-swiss-ink)",
-          padding: "16px",
-          zIndex: 90,
-          boxShadow: "8px 8px 0px var(--color-swiss-ink)",
-          minWidth: "200px",
-        }}
-      >
+      <div className="station-widget">
         <div
           style={{
             display: "flex",

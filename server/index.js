@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import connectDB from "./config/db.js";
 import songsRouter from "./routes/songs.js";
 import stationHandler from "./socket/stationHandler.js";
+import authRouter from "./routes/auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,6 +33,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // API Routes
 app.use("/api/songs", songsRouter);
+app.use("/api/auth", authRouter);
 
 // Socket.io
 io.on("connection", (socket) => {

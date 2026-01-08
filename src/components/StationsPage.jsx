@@ -31,50 +31,18 @@ export default function StationsPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        padding: "40px",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        color: "var(--color-swiss-ink)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "40px",
-      }}
-    >
+    <div className="stations-page-container">
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <button
-          onClick={() => navigate("/")}
-          className="btn"
-          style={{
-            border: "4px solid var(--color-swiss-ink)",
-            padding: "12px 24px",
-            fontWeight: "900",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
+      <div className="stations-header">
+        <button onClick={() => navigate("/")} className="btn stations-back-btn">
           <ArrowLeft /> BACK TO MUSIC
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div className="stations-status">
           <div
+            className="status-dot"
             style={{
-              width: "16px",
-              height: "16px",
               background: isConnected ? "#22c55e" : "var(--color-swiss-orange)",
-              borderRadius: "50%",
-              border: "2px solid var(--color-swiss-ink)",
             }}
           />
           <span style={{ fontWeight: "900", textTransform: "uppercase" }}>
@@ -84,17 +52,8 @@ export default function StationsPage() {
       </div>
 
       {/* Hero Title */}
-      <div>
-        <h1
-          style={{
-            fontSize: "8vw",
-            fontWeight: "900",
-            lineHeight: 0.8,
-            margin: 0,
-            textTransform: "uppercase",
-            letterSpacing: "-2px",
-          }}
-        >
+      <div className="stations-hero">
+        <h1 className="stations-hero-title">
           PUBLIC
           <br />
           STATIONS<span style={{ color: "var(--color-swiss-orange)" }}>.</span>
@@ -102,13 +61,7 @@ export default function StationsPage() {
       </div>
 
       {/* Main Content Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 350px",
-          gap: "40px",
-        }}
-      >
+      <div className="stations-grid">
         {/* Left: Stations List */}
         <div>
           <div
@@ -230,6 +183,7 @@ export default function StationsPage() {
 
         {/* Right: Create Panel */}
         <div
+          className="create-panel"
           style={{
             border: "4px solid var(--color-swiss-ink)",
             padding: "30px",

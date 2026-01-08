@@ -164,8 +164,6 @@ body.dark-mode .titan-text.highlight {
 /* Theme Toggle */
 .theme-toggle {
   position: absolute;
-  top: 30px;
-  right: 30px;
   background: var(--color-swiss-bg);
   border: 4px solid var(--color-swiss-ink);
   color: var(--color-swiss-ink);
@@ -330,4 +328,325 @@ body.dark-mode .titan-text.highlight {
 .btn-play:hover {
   background: var(--color-swiss-orange) !important;
   color: var(--color-swiss-bg) !important;
+}
+
+/* Desktop/Mobile Visibility Utility */
+.desktop-only {
+  display: flex !important;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+/* Player Menu (Top-Right) */
+.player-menu-container {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 200;
+  flex-direction: column; /* Top to bottom */
+  align-items: flex-end; /* Align Right */
+  gap: 16px;
+}
+
+.player-menu-container .radial-items {
+  align-items: flex-end; /* Align items to the right */
+  padding-left: 0;
+  padding-right: 4px;
+}
+
+/* Radial Menu Styles (Mobile) */
+.radial-menu-container {
+  display: none; /* Hidden on desktop by default */
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 200;
+  flex-direction: column; /* Top to bottom */
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.radial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  /* no blur to preventing rendering issues */
+  z-index: 190;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.radial-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.radial-toggle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-swiss-ink);
+  color: var(--color-swiss-bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 210;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.radial-toggle:active {
+  transform: scale(0.9);
+}
+
+.radial-toggle.open {
+  transform: rotate(90deg);
+  background: var(--color-swiss-orange);
+}
+
+.radial-items {
+  display: flex;
+  flex-direction: column; /* Top to bottom */
+  gap: 12px;
+  align-items: flex-start;
+  pointer-events: none;
+  padding-left: 4px;
+  z-index: 205;
+}
+
+.radial-items.open {
+  pointer-events: auto;
+}
+
+.radial-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-swiss-bg);
+  border: 4px solid var(--color-swiss-ink);
+  color: var(--color-swiss-ink);
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0px var(--color-swiss-ink);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.8);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  white-space: nowrap;
+}
+
+.radial-items.open .radial-item {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Stations Page Styles */
+.stations-page-container {
+  height: 100vh; /* Fixed height to allow internal scrolling */
+  width: 100%;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--color-swiss-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  overflow-y: auto; /* Enable vertical rolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-swiss-ink) transparent;
+}
+
+/* Custom Scrollbar for Webkit */
+.stations-page-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.stations-page-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.stations-page-container::-webkit-scrollbar-thumb {
+  background-color: var(--color-swiss-ink);
+  border: 2px solid var(--color-swiss-bg);
+}
+
+.stations-page-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-swiss-orange);
+}
+
+.stations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stations-back-btn {
+  border: 4px solid var(--color-swiss-ink);
+  padding: 12px 24px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stations-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--color-swiss-ink);
+}
+
+.stations-hero-title {
+  font-size: 8vw;
+  font-weight: 900;
+  line-height: 0.8;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+}
+
+/* Floating Buttons Positioning */
+.btn-radio {
+  top: 240px;
+  right: 30px;
+}
+.btn-auth {
+  bottom: 30px;
+  left: 30px;
+}
+.btn-mode {
+  top: 30px;
+  right: 30px;
+}
+.btn-repeat {
+  top: 100px;
+  right: 30px;
+}
+.btn-shuffle {
+  top: 170px;
+  right: 30px;
+}
+.btn-list {
+  top: 240px;
+  left: 30px;
+}
+.btn-upload {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .stations-page-container {
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .stations-header {
+    flex-direction: column-reverse; /* Put Status above Back button or vice versa? Let's keep row but stacked if needed */
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .stations-back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stations-hero-title {
+    font-size: 15vw; /* Much bigger on mobile */
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  /* Ensure container is visible on mobile */
+  .radial-menu-container,
+  .player-menu-container {
+    display: flex;
+  }
+
+  body {
+    align-items: flex-start; /* Align to top on mobile */
+    min-height: 100dvh; /* Use dynamic viewport height */
+  }
+
+  .player-card {
+    width: 100%;
+    height: 100dvh;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero {
+    flex: 1; /* Take up available space */
+    width: 100%;
+    height: auto;
+    min-height: 0; /* Allow shrinking */
+    border-bottom: 4px solid var(--color-swiss-ink);
+  }
+
+  .info {
+    padding: 24px 20px;
+    flex-shrink: 0;
+  }
+
+  .song-title {
+    font-size: 3.5rem; /* Larger on mobile for impact */
+  }
+
+  .controls {
+    height: 100px; /* Taller controls */
+    flex-shrink: 0;
+    margin-bottom: constant(safe-area-inset-bottom); /* iOS safe area */
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  .stations-grid {
+    grid-template-columns: 1fr !important; /* Stack vertically */
+  }
+
+  .create-panel {
+    position: relative !important; /* Un-stick on mobile */
+    top: 0 !important;
+    width: 100% !important;
+    margin-top: 40px;
+  }
+
+  .station-widget {
+    position: fixed !important; /* Ensure it floats above content */
+    top: auto !important;
+    bottom: 150px !important; /* Adjusted to be above menu */
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    width: 90%;
+    min-width: unset !important;
+    background: var(--color-swiss-bg);
+    border: 4px solid var(--color-swiss-ink);
+    padding: 12px;
+    z-index: 100;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  }
 }

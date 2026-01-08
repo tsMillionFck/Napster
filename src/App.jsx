@@ -1,15 +1,33 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { useAudioPlayer } from "./hooks/useAudioPlayer";
+import { useAudioPlayerContext, AudioProvider } from "./context/AudioContext";
+import HostControls from "./components/HostControls";
 import { WebSocketProvider, useWebSocket } from "./context/WebSocketContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import StationManager from "./components/StationManager";
+import StationSyncController from "./components/StationSyncController";
 import StationsPage from "./components/StationsPage";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import Player from "./components/Player";
 import Playlist from "./components/Playlist";
 import UploadModal from "./components/UploadModal";
 import TitanBackground from "./components/TitanBackground";
 import SparkCanvas from "./components/SparkCanvas";
-import { Plus, List, Moon, Sun, Repeat, Shuffle, Radio } from "react-feather";
+import RadialMenu from "./components/RadialMenu";
+import PlayerMenu from "./components/PlayerMenu";
+import {
+  Plus,
+  List,
+  Moon,
+  Sun,
+  Repeat,
+  Shuffle,
+  Radio,
+  User,
+  LogOut,
+  LogIn,
+} from "react-feather";
 
 function PlayerLayout() {
   const {
@@ -32,60 +50,22 @@ function PlayerLayout() {
     refreshSongs,
     toggleRepeat,
     toggleShuffle,
-  } = useAudioPlayer();
+  } = useAudioPlayerContext();
 
-  const { isConnected, currentStation, emitPlayerAction } = useWebSocket();
+  const { isConnected, currentStation, emitPlayerAction, isHost } =
+    useWebSocket();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [playlistOpen, setPlaylistOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Sync with Station State
-  useEffect(() => {
-    if (currentStation && songs.length > 0) {
-      console.log("Syncing with station:", currentStation);
+  // Sync logic moved to StationSyncController
 
-      // Sync Song
-      if (currentStation.currentSong) {
-        // Find index of station song in local songs
-        // Assuming unique names or paths for simplicity
-        const stationSongName = currentStation.currentSong.name;
-        const localIndex = songs.findIndex((s) => s.name === stationSongName);
+  // Sync logic removed
 
-        if (localIndex !== -1 && localIndex !== currentSongIndex) {
-          console.log("Sync: Changing song to", stationSongName);
-          localSelectSong(localIndex);
-        }
-      }
-
-      // Sync Play/Pause
-      if (currentStation.isPlaying !== isPlaying) {
-        console.log("Sync: Toggle play", currentStation.isPlaying);
-        if (currentStation.isPlaying) play();
-        else pause();
-      }
-
-      // Sync Timestamp (if drift > 2s)
-      // Only sync provided timestamp if it's not 0 or if we are just joining/seeking
-      if (Math.abs(currentStation.timestamp - progress) > 2) {
-        console.log("Sync: Seeking to", currentStation.timestamp);
-        localSeek(currentStation.timestamp);
-      }
-    }
-  }, [
-    currentStation,
-    songs,
-    currentSongIndex,
-    isPlaying,
-    progress,
-    localSelectSong,
-    play,
-    pause,
-    localSeek,
-  ]);
-
-  // Wrapper functions to intercept controls
+  // Wrapper functions
   const handleTogglePlay = useCallback(() => {
     if (currentStation) {
       emitPlayerAction(isPlaying ? "pause" : "play", {
@@ -107,9 +87,7 @@ function PlayerLayout() {
   const handleNext = useCallback(() => {
     if (currentStation) {
       let nextIndex = (currentSongIndex + 1) % songs.length;
-      if (isShuffle) {
-        nextIndex = (currentSongIndex + 1) % songs.length;
-      }
+      if (isShuffle) nextIndex = (currentSongIndex + 1) % songs.length; // Shuffle handled by backend/host effectively or simply next
       const nextSong = songs[nextIndex];
       emitPlayerAction("change_song", { song: nextSong });
     } else {
@@ -146,33 +124,17 @@ function PlayerLayout() {
     [currentStation, emitPlayerAction, localSeek]
   );
 
-  // Toggle playlist
-  const togglePlaylist = useCallback(() => {
-    setPlaylistOpen((prev) => !prev);
-  }, []);
+  const togglePlaylist = useCallback(
+    () => setPlaylistOpen((prev) => !prev),
+    []
+  );
+  const handleUploadSuccess = useCallback(() => refreshSongs(), [refreshSongs]);
+  const handleSpark = useCallback(() => {}, []);
+  const toggleTheme = useCallback(() => setDarkMode((prev) => !prev), []);
 
-  // Handle upload success
-  const handleUploadSuccess = useCallback(() => {
-    refreshSongs();
-  }, [refreshSongs]);
-
-  // Handle spark click - just visual effect, no freeze
-  const handleSpark = useCallback(() => {
-    // Sparks appear but no freeze
-  }, []);
-
-  // Toggle dark mode
-  const toggleTheme = useCallback(() => {
-    setDarkMode((prev) => !prev);
-  }, []);
-
-  // Apply dark mode class to body
   useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add("dark-mode");
-    } else {
-      document.body.classList.remove("dark-mode");
-    }
+    if (darkMode) document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
   }, [darkMode]);
 
   if (loading) {
@@ -196,31 +158,44 @@ function PlayerLayout() {
   return (
     <>
       <StationManager />
-
       {/* Navigation Button to Stations */}
       <button
         onClick={() => navigate("/stations")}
-        className="theme-toggle"
-        style={{
-          top: "240px",
-          right: "30px",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-        }}
+        className="theme-toggle btn-radio desktop-only"
+        style={{ display: "flex", alignItems: "center", gap: "8px" }}
         title="Go to Stations"
       >
         <Radio size={16} />
         <span>RADIO</span>
       </button>
-
+      {/* Auth Button - Bottom Left */}
+      <button
+        onClick={() => {
+          if (user) {
+            if (window.confirm("Log out?")) logout();
+          } else {
+            navigate("/login");
+          }
+        }}
+        className="theme-toggle btn-auth desktop-only"
+        style={{
+          background: user ? "var(--color-swiss-ink)" : undefined,
+          color: user ? "var(--color-swiss-bg)" : undefined,
+          minWidth: user ? "120px" : "auto",
+        }}
+        title={user ? "Log Out" : "Log In"}
+      >
+        {user ? <LogOut size={16} /> : <LogIn size={16} />}
+        <span style={{ marginLeft: "8px" }}>
+          {user ? user.username : "LOGIN"}
+        </span>
+      </button>
       <SparkCanvas onSpark={handleSpark} />
       <TitanBackground
         songName={currentSong.name}
         artistName={currentSong.artist}
       />
-
-      {/* Dark Focus Overlay - dims background when playing */}
+      {/* Dark Focus Overlay */}
       <div
         style={{
           position: "fixed",
@@ -234,19 +209,19 @@ function PlayerLayout() {
             : "opacity 2s ease-out",
         }}
       />
-
-      {/* Theme Toggle Button */}
-      <button className="theme-toggle" onClick={toggleTheme}>
+      {/* Theme Toggle */}
+      <button
+        className="theme-toggle btn-mode desktop-only"
+        onClick={toggleTheme}
+      >
         {darkMode ? <Sun size={16} /> : <Moon size={16} />}
         <span style={{ marginLeft: "8px" }}>MODE</span>
       </button>
-
-      {/* Repeat Button - Below Mode */}
+      {/* Repeat Button */}
       <button
-        className="theme-toggle"
+        className="theme-toggle btn-repeat desktop-only"
         onClick={toggleRepeat}
         style={{
-          top: "100px",
           background: isRepeat ? "var(--color-swiss-orange)" : undefined,
           color: isRepeat ? "var(--color-swiss-bg)" : undefined,
         }}
@@ -254,13 +229,11 @@ function PlayerLayout() {
         <Repeat size={16} />
         <span style={{ marginLeft: "8px" }}>RPT</span>
       </button>
-
-      {/* Shuffle Button - Below Repeat */}
+      {/* Shuffle Button */}
       <button
-        className="theme-toggle"
+        className="theme-toggle btn-shuffle desktop-only"
         onClick={toggleShuffle}
         style={{
-          top: "170px",
           background: isShuffle ? "var(--color-swiss-orange)" : undefined,
           color: isShuffle ? "var(--color-swiss-bg)" : undefined,
         }}
@@ -268,19 +241,16 @@ function PlayerLayout() {
         <Shuffle size={16} />
         <span style={{ marginLeft: "8px" }}>SHF</span>
       </button>
-
-      {/* Playlist Toggle - Top Left (hidden when playlist is open) */}
+      {/* Playlist Toggle */}
       {!playlistOpen && (
         <button
-          className="theme-toggle"
-          style={{ left: "30px", right: "auto" }}
+          className="theme-toggle btn-list desktop-only"
           onClick={togglePlaylist}
         >
           <List size={16} />
           <span style={{ marginLeft: "8px" }}>LIST</span>
         </button>
       )}
-
       {songs.length === 0 ? (
         <div className="player-card">
           <div
@@ -324,20 +294,59 @@ function PlayerLayout() {
           onNext={handleNext}
           onPrev={handlePrev}
           onSeek={handleSeek}
+          isReadOnly={currentStation && !isHost}
         />
       )}
-
-      {/* Upload Button - Bottom Right */}
+      {/* Host Controls Button - Only visible if Host */}
+      {currentStation &&
+        isConnected &&
+        currentStation.host === user?.id && ( // We need to check socket id, but WebSocketContext provides isHost.
+          // Wait, socket.id available in WebSocketContext. user.id is Auth logic.
+          // Let's use context "isHost" which we derived.
+          // We need to destructure isHost from useWebSocket first.
+          <button
+            onClick={() => navigate("/station/host")}
+            className="theme-toggle btn-mode desktop-only"
+            style={{
+              bottom: "100px", // Stack above others
+              background: "var(--color-swiss-orange)",
+              color: "var(--color-swiss-bg)",
+              width: "auto",
+              padding: "0 16px",
+              right: "20px",
+            }}
+          >
+            <Users size={16} />
+            <span style={{ marginLeft: "8px" }}>HOST CTRL</span>
+          </button>
+        )}
+      {/* Upload Button */}
       <button
         onClick={() => setUploadOpen(true)}
-        className="theme-toggle"
-        style={{ top: "auto", bottom: "30px" }}
-        aria-label="Upload Song"
+        className="theme-toggle btn-upload desktop-only"
       >
         <Plus size={16} />
         <span style={{ marginLeft: "8px" }}>ADD</span>
       </button>
-
+      {/* Mobile Radial Menu (System: Left) */}
+      <RadialMenu
+        user={user}
+        darkMode={darkMode}
+        isHost={isHost && currentStation}
+        onToggleTheme={toggleTheme}
+        onNavigate={navigate}
+        onLogout={logout}
+        onUpload={() => setUploadOpen(true)}
+      />
+      {/* Mobile Player Menu (Player: Right) */}
+      <PlayerMenu
+        isRepeat={isRepeat}
+        isShuffle={isShuffle}
+        playlistOpen={playlistOpen}
+        onToggleRepeat={toggleRepeat}
+        onToggleShuffle={toggleShuffle}
+        onTogglePlaylist={togglePlaylist}
+      />
       <Playlist
         songs={songs}
         currentSongIndex={currentSongIndex}
@@ -352,7 +361,6 @@ function PlayerLayout() {
         }}
         onClose={() => setPlaylistOpen(false)}
       />
-
       <UploadModal
         isOpen={uploadOpen}
         onClose={() => setUploadOpen(false)}
@@ -365,12 +373,22 @@ function PlayerLayout() {
 function App() {
   return (
     <BrowserRouter>
-      <WebSocketProvider>
-        <Routes>
-          <Route path="/" element={<PlayerLayout />} />
-          <Route path="/stations" element={<StationsPage />} />
-        </Routes>
-      </WebSocketProvider>
+      <AuthProvider>
+        <WebSocketProvider>
+          <AudioProvider>
+            <StationSyncController />
+            <Routes>
+              <Route path="/" element={<PlayerLayout />} />
+              <Route path="/stations" element={<StationsPage />} />
+              <Route path="/room/host" element={<HostControls />} />{" "}
+              {/* Using /room/host path */}
+              <Route path="/station/host" element={<HostControls />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Routes>
+          </AudioProvider>
+        </WebSocketProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

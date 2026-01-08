@@ -16,6 +16,9 @@ export const WebSocketProvider = ({ children }) => {
   const [stationError, setStationError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Derived state to check if current user is host
+  const isHost = currentStation && socket && currentStation.host === socket.id;
+
   // Use a ref to keep track of the socket to avoid cleanup issues
   const socketRef = useRef(null);
 
@@ -138,6 +141,8 @@ export const WebSocketProvider = ({ children }) => {
         socket,
         isConnected,
         currentStation,
+        isHost, // Expose isHost
+        stationsList,
         stationsList,
         stationError,
         createStation,
