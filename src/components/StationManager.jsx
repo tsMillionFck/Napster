@@ -6,7 +6,26 @@ export default function StationManager() {
   const { isConnected, currentStation, leaveStation } = useWebSocket();
 
   if (!isConnected) {
-    return <div className="station-offline">OFFLINE</div>;
+    return (
+      <div className="station-widget" style={{ justifyContent: "center" }}>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            background: "var(--color-swiss-orange)",
+            color: "white",
+            border: "none",
+            padding: "8px 16px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Radio size={16} /> RECONNECT
+        </button>
+      </div>
+    );
   }
 
   if (currentStation) {

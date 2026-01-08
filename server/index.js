@@ -13,6 +13,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
+  pingInterval: 10000, // Send heartbeat every 10s
+  pingTimeout: 5000, // Disconnect if no pong within 5s
   cors: {
     origin: "*", // Adjust for production
     methods: ["GET", "POST"],
